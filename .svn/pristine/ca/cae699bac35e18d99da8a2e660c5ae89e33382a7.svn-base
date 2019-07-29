@@ -1,0 +1,402 @@
+<template>
+    <div id="infomedia">
+        <div class="infomedia">
+            <curheader></curheader>
+            <div class="banner">
+                <img src="../../assets/images/media.jpg" alt="">
+            </div>
+            <div class="infoWarp">
+                <div>
+                     <el-tabs class="infoNav" v-model="activeName" @tab-click="handleClick">
+                        <el-tab-pane label="专利信息推送" name="1">
+                            <div class="noDataWrap" v-show="gnodata">
+								<div class="noData">
+									<span></span>
+									<p>暂时没有数据哦(●ˇ∀ˇ●)~~</p>
+								</div>
+							</div>
+                            <div class="Box" v-for="item in noticeDataSource">
+                                <div class="picture">
+                                    <img v-bind:src="item.urls" alt="">
+                                </div>
+                                <div class="infoContent" >
+                                    <div class="title">
+                                        <p>{{item.noticeName}}</p>
+                                    </div>
+                                    <div class="content">
+                                        <p>{{item.noticeDes}}</p>
+                                    </div>
+                                    <div class="infoMore">
+                                        <div class="date">
+                                            <i class="item_icon icon_date"></i>
+                                            <span>{{item.noticeDate|formatDate_YMDHMS}}</span>
+                                        </div>
+                                        <router-link  :to="{path:'/mediaDetail',query:{id:1,docId:item.id}}"><el-button  type="primary">了解详情</el-button></router-link>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pagination_box">
+                                <div class="pagination" v-show="!gnodata">
+                                    <div class="block">
+                                    <el-pagination  @current-change="changeNoticeCurrentPage" :current-page="noticeCurrentPage"
+                                        :page-size="noticePageSize"
+                                        layout="prev, pager, next, jumper"
+                                        :total="noticeTotal"
+                                        >
+                                    </el-pagination>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-tab-pane>
+                        <el-tab-pane label="政策法规" name="2">
+                            <div class="noDataWrap" v-show="nodata">
+								<div class="noData">
+									<span></span>
+									<p>暂时没有数据哦(●ˇ∀ˇ●)~~</p>
+								</div>
+							</div>
+                            <div class="Box" v-for="item in policyDataSource">
+                                <div class="picture">
+                                    <img v-bind:src="item.urls" alt="">
+                                </div>
+                                <div class="infoContent" >
+                                    <div class="title">
+                                        <p>{{item.policyName}}</p>
+                                    </div>
+                                    <div class="content">
+                                        <p>{{item.policyDes}}</p>
+                                    </div>
+                                    <div class="infoMore">
+                                        <div class="date">
+                                            <i class="item_icon icon_date"></i>
+                                            <span>{{item.policyDate|formatDate_YMDHMS}}</span>
+                                        </div>
+                                        <router-link  :to="{path:'/mediaDetail',query:{id:2,docId:item.id}}"><el-button  type="primary">了解详情</el-button></router-link>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pagination_box" v-show="!nodata">
+                                <div class="pagination">
+                                    <div class="block">
+                                    <el-pagination  @current-change="changePolicyCurrentPage" :current-page="policyCurrentPage"
+                                        :page-size="policyPageSize"
+                                        layout="prev, pager, next, jumper"
+                                        :total="policyTotal"
+                                        >
+                                    </el-pagination>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-tab-pane>
+                        <el-tab-pane label="交易规则" name="3">
+                            <div class="Box" v-for="item in tradingRuleDataSource">
+                                <div class="picture">
+                                    <img v-bind:src="item.articleImg" alt="">
+                                </div>
+                                <div class="infoContent" >
+                                    <div class="title">
+                                        <p>{{item.docName}}</p>
+                                    </div>
+                                    <div class="content">
+                                        <p>{{item.brief}}</p>
+                                    </div>
+                                    <div class="infoMore">
+                                        <div class="date">
+                                            <i class="item_icon icon_date"></i>
+                                            <span>{{item.decDate|formatDate_YMDHMS}}</span>
+                                        </div>
+                                        <router-link  :to="{path:'/mediaDetail',query:{id:3,item:item,cid:item.id}}"><el-button  type="primary">了解详情</el-button></router-link>
+                                    </div>
+                                </div>
+                            </div>
+                        </el-tab-pane>
+                    </el-tabs>
+                </div>
+            </div>
+            <bottom></bottom>
+            <starboard></starboard>
+        </div>
+    </div>
+</template>
+<script>
+import {docData} from '../../assets/data/tradingDoc';
+import http from "../config/request";
+export default {
+  data () {
+      return {
+           activeName: '1',
+           noticeDataSource:'',//新闻数据源
+           policyDataSource:'',//政策数据源
+           tradingRuleDataSource:'',//交易规则数据源
+           noticeCurrentPage: 1,//公告初始化分页
+           noticePageSize:null,//当前页数
+           noticeTotal:null,//公告总页数
+           policyCurrentPage:1,//政策初始化分页
+           policyPageSize:null,//政策当前页数
+           policyTotal:null,//政策公告总页数
+           nodata:false,
+           pstatus:false,//分页是否显示
+           gnodata:false,
+           gpstatus:false,//分页是否显示
+      }
+  },
+  created() {
+    this.getNotice()
+  },
+  methods:{
+      handleClick(tab, event) {
+        switch (this.activeName){
+			case '1':
+			this.getNotice()
+			break;
+			case '2':
+			this.getPolicy()
+            break;
+            case '3':
+            this.getTradingDoc()
+			break;
+		}
+      },
+      changeNoticeCurrentPage(val) {
+        this.getNotice(parseInt(val)-1);
+      },
+      changePolicyCurrentPage(val){
+          this.getPolicy(parseInt(val)-1);
+      },
+      //获取公告数据源
+      getNotice(currentPage){
+        let parame = {
+            currentPage:currentPage||0,
+            pageCount:4
+        }
+        http.Request('szipee/cms!queryNotice.action','POST',null,parame).then(res=>{
+            if(res!=null){
+                this.gpstatus=true;
+                this.gnodata = false;
+                this.noticeCurrentPage=parseInt(res[0].currentPage)+1;
+                this.noticePageSize=res[0].pageCount;
+                this.noticeTotal=res[0].dataCounts;
+                this.noticeDataSource = res;
+            }else{
+                this.gpstatus=false;
+                this.gnodata = true;
+            }
+        })
+      },
+      //获取政策法规数据源
+      getPolicy(currentPage){
+        let parame = {
+            currentPage:currentPage||0,
+            pageCount:4,
+        }
+        http.Request('szipee/cms!queryPolicy.action','POST',null,parame).then(res=>{
+            if(res!=null){
+                this.pstatus=true; 
+                this.nodata=false;
+                this.policyCurrentPage=parseInt(res[0].currentPage)+1;
+                this.policyPageSize=res[0].pageCount;
+                this.policyTotal=res[0].dataCounts;
+                this.policyDataSource = res;
+            }else{
+                this.pstatus=false;
+                this.nodata=true;
+            }
+        })
+      },
+      //获取交易规则数据源--PS:本地数据
+      getTradingDoc(){
+          this.tradingRuleDataSource = docData
+      }
+  },
+  components:{
+    curheader: resolve => {require(['../common/header/header'], resolve)},
+    bottom: resolve => {require(['../common/bottom/bottom'], resolve)},
+    starboard: resolve => {require(['../common/starboard/starboard'], resolve)},
+  }
+}
+</script>
+<style lang="less" ref="reference/less">
+@import '../../assets/less/index.less';
+#infomedia{
+    .infomedia{
+        width: 100%;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        background-color: @bodyBackground;
+        .banner{
+            min-width: 1230px;
+            img{
+                width: 100%;
+                height: 240px;
+            }
+        }
+        .infoWarp{
+            width: 100%;
+            height: auto;
+            display: flex;
+            justify-content: center;
+            .infoNav{
+                width: 100%;
+                height: auto;
+                margin-top: 40px;
+                .el-tabs__nav-wrap::after{
+                    background-color: @bodyBackground;
+                }
+                .el-tabs__nav{
+                    width: 1230px;
+                    display: flex;
+                    justify-content: center;
+                    margin-bottom: 30px;
+                    .el-tabs__item{
+                        width: 180px;
+                        height: 48px;
+                        border-radius: 4px;
+                        background-color: #fff;
+                        text-align: center;
+                        line-height: 48px;
+                        margin-left: 30px;
+                        padding: 0;
+                    }
+                    .is-active{
+                        background: #f7b422;
+                        color:#fff;
+                    }
+                    .el-tabs__active-bar{
+                        display: none;
+                    }
+                }
+                .el-tabs__content{
+                    width: 1230px;
+                    height: auto;
+                   
+                    .el-tab-pane{
+                         width: 1230px;
+                        height: auto;
+                        display: flex;
+                        flex-direction: column;
+                        .Box{
+                            display: flex;
+                            flex-direction: row;
+                            margin-bottom: 20px;
+                            border: 1px solid #ebeef5;
+                            box-shadow: 3px 3px 5px rgba(0,0,0,.1);
+                        .picture{
+                            width: 495px;
+                            height: 280px;
+                            img{
+                                width: 100%;
+                                height: 100%;
+                            }
+                        }
+                        .infoContent{
+                            width: 735px;
+                            height: 280px;
+                            background-color: #fff;
+                            display: flex;
+                            flex-direction: column;
+                            padding:0 30px;
+                            .title{
+                                margin: 30px 0;
+                                p{
+                                    font-size: 16px;
+                                    color:#16181e;
+                                    font-weight: 600;
+                                }
+                            }
+                            .content{
+                                width:100%;
+                                height: 120px;
+                                p{
+                                    font-size: 14px;
+                                    color:#667587;
+                                    overflow:hidden;
+                                    text-overflow:ellipsis;
+                                    display:-webkit-box !important;
+                                    word-break:break-all;
+                                    word-break: keep-all;
+                                    -webkit-box-orient:vertical;
+                                    -webkit-line-clamp:3;
+                                    text-indent:28px;
+                                    line-height: 24px;
+                                }
+                            }
+                            .infoMore{
+                                height: 50px;
+                                display: flex;
+                                justify-content: space-between;
+                                .date{
+                                    display: flex;
+                                    flex-direction: row;
+                                    align-items: center;
+                                    span{
+                                        height: 20px;
+                                        display: inline-block;
+                                        line-height: 20px;
+                                        padding-left:8px;
+                                        color:#3f4a56;
+                                        font-size: 14px;
+                                    }
+                                    i{
+                                        line-height: 50px;
+                                    }
+                                    .item_icon{
+                                        display: inline-block;
+                                        width: 20px;
+                                        height: 20px;
+                                        background-image: url("../../assets/images/icon.png");
+                                        background-repeat: no-repeat;
+                                    }
+                                }
+                                .el-button--primary{
+                                    color: #fff;
+                                    background-color: @lightThemeColor;
+                                    border-color: @lightThemeColor;
+                                    width: 180px;
+                                    height: 50px;
+                                }
+                            }
+                        }
+                    }
+                    }
+                }
+              
+            }
+        }
+    }
+    .pagination_box{
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        .pagination{
+            width: 1230px;
+            margin-top: 40px;
+            margin-bottom: 60px;
+            .el-pager li{
+                height: 42px;
+                width: 42px;
+                line-height: 42px;
+                background: #fff;
+                color:#b0bac5;
+                font-size: 16px;
+                margin: 0 5px;
+                border-radius: 2px;
+            }
+            .el-pagination button, .el-pagination span:not([class*=suffix]),.el-pagination__editor.el-input .el-input__inner{
+                height: 42px;
+                width: 42px;
+                line-height: 42px;
+                font-size: 16px;
+                margin: 0 5px;
+                border-radius: 2px;
+            }
+            .el-pager li.active {
+                background-color: #409EFF !important;
+                cursor: default;
+                color:#fff !important;
+            }
+        }
+    }
+   } 
+</style>
+

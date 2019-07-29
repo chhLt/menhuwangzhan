@@ -1,0 +1,41 @@
+body,html{
+    line-height:1;
+    font-weight:200;
+    font-family: 'Microsoft YaHei,Tahoma,simsun';
+    width: 100%;
+    height: auto;
+}
+//主题色
+@darkThemeColor: #0085da;
+@lightThemeColor:#0099fa;
+//背景色
+@bodyBackground:#f4f7fa;
+//清除浮动
+.clearfix{
+    display:inline-block;
+    &:after {
+        content: ".";
+        display: block; 
+        height: 0; 
+        clear: both; 
+        visibility: hidden;
+    }
+}
+//移动端1px线条(dpr:1.5)
+@media (-webkit-min-device-pixel-ratio:1.5),(min-device-pixel-ratio:1.5){
+    .border_1px{
+        &::after{
+            -webkit-transform: scaleY(0.7);
+            transform: scaleY(0.7);
+        }
+    }
+}
+////移动端1px线条(dpr:2)
+@media (-webkit-min-device-pixel-ratio:2),(min-device-pixel-ratio:2){
+    .border_1px{
+        &::after{
+            -webkit-transform: scaleY(0.5);
+            transform: scaleY(0.5);
+        }
+    }
+}
